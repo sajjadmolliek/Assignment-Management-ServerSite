@@ -53,7 +53,9 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Database For Add Product in the cart
-    const AddAssignment = client.db("AddAssignmentDB").collection("AssignmentData");
+    const AddAssignment = client
+      .db("AddAssignmentDB")
+      .collection("AssignmentData");
 
     // --------------------------------AddProductCollection Data Collection Server--------------------------------------
 
@@ -86,74 +88,113 @@ async function run() {
       }
     });
 
-
-
-
     // <-------------------------------General Working API----------------------------------->
 
-
-
     // Assignment Posting By AddAssignment Route
-
     app.post("/AddAssignment", async (req, res) => {
       try {
-        const PostedAssignmentData = req.body
+        const PostedAssignmentData = req.body;
         const result = await AddAssignment.insertOne(PostedAssignmentData);
         res.send(result);
       } catch (error) {
         console.log("Assignment Posting By AddAssignment Route:", error);
       }
     });
-    //  All Posting Assignment Get By AllAssignment Route
 
+    //  All Posting Assignment Get By AllAssignment Route
     app.get("/AddAssignment", async (req, res) => {
       try {
-        
         const result = await AddAssignment.find().toArray();
         res.send(result);
       } catch (error) {
-        console.log("All Posting Assignment Get By AllAssignment Route:", error);
+        console.log(
+          "All Posting Assignment Get By AllAssignment Route:",
+          error
+        );
       }
     });
+
+    //  All Posting Assignment Get By Query AllAssignment Route
+    app.get("/AddAssignmentQuery", async (req, res) => {
+      try {
+        const data = req.query.level;
+    
+        if(data === "All"){
+          const result = await AddAssignment.find().toArray();
+          res.send(result);
+        }
+        else{
+          const query = {
+            level : data
+          }
+          const result = await AddAssignment.find(query).toArray();
+          res.send(result);
+        }
+        
+      } catch (error) {
+        console.log(
+          "All Posting Assignment Get By AllAssignment Route:",
+          error
+        );
+      }
+    });
+
     //  Find Posting Assignment By id to see Details at Details Route
     app.get("/details/:id", async (req, res) => {
       try {
         const id = req.params;
-        const query = { _id:new ObjectId(id) };
+        const query = { _id: new ObjectId(id) };
         const result = await AddAssignment.findOne(query);
         res.send(result);
       } catch (error) {
-        console.log("Find Posting Assignment By id to see Details at Details Route:", error);
+        console.log(
+          "Find Posting Assignment By id to see Details at Details Route:",
+          error
+        );
       }
     });
-      // update Assignment By id in Update Route Route
-      app.patch("/details/:id", async (req, res) => {
-        try {
-          const id = req.params.id;
-          const data = req.body;
-          
-          const query = { _id: new ObjectId(id) };
-          const options = { upsert: true };
-          const updateDoc = {
-            $set: {
-              PostedUser: data.PostedUser,
-              Tittle: data.Tittle,
-              level: data.level,
-              Marks: data.Marks,
-              Date: data.Date,
-              description: data.description,
-              photo: data.photo,
-              startDate: data.startDate,
-            },
-          };
-          const result = await AddAssignment.updateOne(query,updateDoc,options);
-          res.send(result);
-        } catch (error) {
-          console.log("update Assignment By id in Update Route Route:", error);
-        }
-      });
 
+    // update Assignment By id in Update Route
+    app.patch("/details/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const data = req.body;
 
+        const query = { _id: new ObjectId(id) };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            PostedUser: data.PostedUser,
+            Tittle: data.Tittle,
+            level: data.level,
+            Marks: data.Marks,
+            Date: data.Date,
+            description: data.description,
+            photo: data.photo,
+            startDate: data.startDate,
+          },
+        };
+        const result = await AddAssignment.updateOne(query, updateDoc, options);
+        res.send(result);
+      } catch (error) {
+        console.log("update Assignment By id in Update Route Route:", error);
+      }
+    });
+    
+    // Delete Assignment By id which is pass by body in AssignmentCard Route
+    app.delete("/delete/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await AddAssignment.deleteOne(query);
+        res.send(result);
+      } catch (error) {
+        console.log(
+          "Delete Assignment By id which is pass by body in AssignmentCard Route:",
+          error
+        );
+      }
+    });
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
