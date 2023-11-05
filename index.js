@@ -1,13 +1,41 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5006;
 
 // middleWare
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
+// verify token
+const verifyToken = async (req, res, next) => {
+  try {
+    const token = req.cookies?.Token;
+    //Token As a middleware;
+    if (!token) {
+      return res.status(401).send({ massage: "unAuthorize" });
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        // Token verification failed
+        return res.status(401).send({ massage: "unAuthorize" });
+      }
+      req.user = decoded;
+      next();
+    });
+  } catch (err) {
+    console.log("I am Under Verify", err);
+  }
+};
 
 // MongoDB COde:
 
@@ -24,21 +52,113 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-   
-   
     // Database For Add Product in the cart
-    const AddCartProductCollection = client.db("CartDB").collection("CartData");
+    const AddAssignment = client.db("AddAssignmentDB").collection("AssignmentData");
 
     // --------------------------------AddProductCollection Data Collection Server--------------------------------------
 
+    // Auth Related Access Token
+    app.post("/jwt", async (req, res) => {
+      try {
+        const user = req.body;
+        const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+          expiresIn: "1h",
+        });
+        res
+          .cookie("Token", token, {
+            httpOnly: true,
+            secure: false,
+          })
+          .send({ Success: "Cookies Set Successfully" });
+      } catch (error) {
+        console.log("Error Post Jwt Token :", error);
+      }
+    });
+
+    // Remove Token
+    app.post("/logout-jwt", async (req, res) => {
+      try {
+        res
+          .clearCookie("Token", { maxAge: 0 })
+          .send({ Success: "Cookies Removed Successfully" });
+      } catch (error) {
+        console.log("Error Post logOut-Jwt Token:", error);
+      }
+    });
 
 
-   
+
+
+    // <-------------------------------General Working API----------------------------------->
+
+
+
+    // Assignment Posting By AddAssignment Route
+
+    app.post("/AddAssignment", async (req, res) => {
+      try {
+        const PostedAssignmentData = req.body
+        const result = await AddAssignment.insertOne(PostedAssignmentData);
+        res.send(result);
+      } catch (error) {
+        console.log("Assignment Posting By AddAssignment Route:", error);
+      }
+    });
+    //  All Posting Assignment Get By AllAssignment Route
+
+    app.get("/AddAssignment", async (req, res) => {
+      try {
+        
+        const result = await AddAssignment.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.log("All Posting Assignment Get By AllAssignment Route:", error);
+      }
+    });
+    //  Find Posting Assignment By id to see Details at Details Route
+    app.get("/details/:id", async (req, res) => {
+      try {
+        const id = req.params;
+        const query = { _id:new ObjectId(id) };
+        const result = await AddAssignment.findOne(query);
+        res.send(result);
+      } catch (error) {
+        console.log("Find Posting Assignment By id to see Details at Details Route:", error);
+      }
+    });
+      // update Assignment By id in Update Route Route
+      app.patch("/details/:id", async (req, res) => {
+        try {
+          const id = req.params.id;
+          const data = req.body;
+          
+          const query = { _id: new ObjectId(id) };
+          const options = { upsert: true };
+          const updateDoc = {
+            $set: {
+              PostedUser: data.PostedUser,
+              Tittle: data.Tittle,
+              level: data.level,
+              Marks: data.Marks,
+              Date: data.Date,
+              description: data.description,
+              photo: data.photo,
+              startDate: data.startDate,
+            },
+          };
+          const result = await AddAssignment.updateOne(query,updateDoc,options);
+          res.send(result);
+        } catch (error) {
+          console.log("update Assignment By id in Update Route Route:", error);
+        }
+      });
+
+
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
-   
   }
 }
 run().catch(console.dir);
