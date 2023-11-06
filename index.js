@@ -161,7 +161,7 @@ async function run() {
     app.patch("/details/:id", async (req, res) => {
       try {
         const id = req.params.id;
-
+        const data = req.body;
         const query = { _id: new ObjectId(id) };
         const options = { upsert: true };
         const updateDoc = {
@@ -248,7 +248,7 @@ async function run() {
         const id = req.params;
         const query = { _id: new ObjectId(id) };
         const result = await SubmitAddAssignment.findOne(query);
-        console.log(id,query,result);
+        console.log(id, query, result);
         res.send(result);
       } catch (error) {
         console.log(
@@ -258,7 +258,28 @@ async function run() {
       }
     });
 
-    
+    // update Assignment By id in Update Route
+    app.patch("/SubmitAssignment/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const data = req.body;
+
+        const query = { _id: new ObjectId(id) };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            ObtainMarks: data.ObtainMarks,
+            Feedback: data.Feedback,
+          },
+        };
+        // console.log({ id }, query, options,data,updateDoc);
+
+        const result = await SubmitAddAssignment.updateOne(query, updateDoc, options);
+        res.send(result);
+      } catch (error) {
+        console.log("update Assignment By id in Update Route Route:", error);
+      }
+    });
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
