@@ -211,7 +211,20 @@ async function run() {
       }
     });
 
+     // Get All SubmitAssignment Assignment  in AllAssignment Route
+     app.get("/SubmitAssignment", async (req, res) => {
+      try {
+        const result = await SubmitAddAssignment.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.log(
+          "Get All SubmitAssignment Assignment  in AllAssignment Route:",
+          error
+        );
+      }
+    });
 
+    
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
