@@ -203,7 +203,9 @@ async function run() {
     app.post("/SubmitAssignment", async (req, res) => {
       try {
         const SubmitAssignmentData = req.body;
-        const result = await SubmitAddAssignment.insertOne(SubmitAssignmentData);
+        const result = await SubmitAddAssignment.insertOne(
+          SubmitAssignmentData
+        );
         console.log(result);
         res.send(result);
       } catch (error) {
@@ -211,8 +213,8 @@ async function run() {
       }
     });
 
-     // Get All SubmitAssignment Assignment  in AllAssignment Route
-     app.get("/SubmitAssignment", async (req, res) => {
+    // Get All SubmitAssignment Assignment  in AllAssignment Route
+    app.get("/SubmitAssignment", async (req, res) => {
       try {
         const result = await SubmitAddAssignment.find().toArray();
         res.send(result);
@@ -224,7 +226,22 @@ async function run() {
       }
     });
 
-    
+    //  Get All SubmitAssignment Assignment By Query AllAssignment Route
+    app.get("/SubmitAssignmentQuery", async (req, res) => {
+      try {
+        const email = req.query.email;
+        const query = {
+          currentUser: email,
+        };
+        const result = await SubmitAddAssignment.find(query).toArray();
+        res.send(result);
+      } catch (error) {
+        console.log(
+          "Get All SubmitAssignment Assignment By Query AllAssignment Route:",
+          error
+        );
+      }
+    });
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
