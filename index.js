@@ -56,6 +56,9 @@ async function run() {
     const AddAssignment = client
       .db("AddAssignmentDB")
       .collection("AssignmentData");
+    const SubmitAddAssignment = client
+      .db("AddAssignmentDB")
+      .collection("SubmitAssignmentData");
 
     // --------------------------------AddProductCollection Data Collection Server--------------------------------------
 
@@ -66,10 +69,12 @@ async function run() {
         const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
           expiresIn: "1h",
         });
+        // const age = 1000;
         res
           .cookie("Token", token, {
             httpOnly: true,
             secure: false,
+            // maxAge:age,
           })
           .send({ Success: "Cookies Set Successfully" });
       } catch (error) {
@@ -101,7 +106,7 @@ async function run() {
       }
     });
 
-    //  All Posting Assignment Get By AllAssignment Route
+    //  All Posting Assignment Get in AllAssignment Route
     app.get("/AddAssignment", async (req, res) => {
       try {
         const result = await AddAssignment.find().toArray();
@@ -118,19 +123,17 @@ async function run() {
     app.get("/AddAssignmentQuery", async (req, res) => {
       try {
         const data = req.query.level;
-    
-        if(data === "All"){
+
+        if (data === "All") {
           const result = await AddAssignment.find().toArray();
           res.send(result);
-        }
-        else{
+        } else {
           const query = {
-            level : data
-          }
+            level: data,
+          };
           const result = await AddAssignment.find(query).toArray();
           res.send(result);
         }
-        
       } catch (error) {
         console.log(
           "All Posting Assignment Get By AllAssignment Route:",
@@ -180,7 +183,7 @@ async function run() {
         console.log("update Assignment By id in Update Route Route:", error);
       }
     });
-    
+
     // Delete Assignment By id which is pass by body in AssignmentCard Route
     app.delete("/delete/:id", async (req, res) => {
       try {
@@ -195,6 +198,20 @@ async function run() {
         );
       }
     });
+
+    // Posting SubmitAssignment By AddAssignment Route
+    app.post("/SubmitAssignment", async (req, res) => {
+      try {
+        const SubmitAssignmentData = req.body;
+        const result = await SubmitAddAssignment.insertOne(SubmitAssignmentData);
+        console.log(result);
+        res.send(result);
+      } catch (error) {
+        console.log("Posting SubmitAssignment By AddAssignment Route:", error);
+      }
+    });
+
+
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
