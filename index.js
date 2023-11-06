@@ -161,7 +161,6 @@ async function run() {
     app.patch("/details/:id", async (req, res) => {
       try {
         const id = req.params.id;
-        const data = req.body;
 
         const query = { _id: new ObjectId(id) };
         const options = { upsert: true };
@@ -242,6 +241,24 @@ async function run() {
         );
       }
     });
+
+    //  Find Submitting Assignment By id  at GiveMarks Route
+    app.get("/SubmitAssignment/:id", async (req, res) => {
+      try {
+        const id = req.params;
+        const query = { _id: new ObjectId(id) };
+        const result = await SubmitAddAssignment.findOne(query);
+        console.log(id,query,result);
+        res.send(result);
+      } catch (error) {
+        console.log(
+          "Find Submitting Assignment By id  at GiveMarks Route:",
+          error
+        );
+      }
+    });
+
+    
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
