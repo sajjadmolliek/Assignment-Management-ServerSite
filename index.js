@@ -13,7 +13,6 @@ app.use(
     origin: [
       "https://online-study-explore.web.app",
       "https://online-study-explore.firebaseapp.com",
-      "http://localhost:5173",
     ],
     credentials: true,
   })
@@ -77,8 +76,8 @@ async function run() {
         res
           .cookie("Token", token, {
             httpOnly: true,
-            secure: false,
-            sameSite: "none",
+            secure: process.env.NODE_ENV === "production" ? true: false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
           })
           .send({ Success: "Cookies Set Successfully" });
       } catch (error) {
@@ -90,7 +89,11 @@ async function run() {
     app.post("/logout-jwt", async (req, res) => {
       try {
         res
-          .clearCookie("Token", { maxAge: 0 })
+          .clearCookie("Token", { 
+            maxAge: 0,
+            secure: process.env.NODE_ENV === "production" ? true: false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          })
           .send({ Success: "Cookies Removed Successfully" });
       } catch (error) {
         console.log("Error Post logOut-Jwt Token:", error);
@@ -160,7 +163,7 @@ async function run() {
     });
 
     //  Find Posting Assignment By id to see Details at Details Route
-    app.get("/details/:id", async (req, res) => {
+    app.get("/details/:id",verifyToken, async (req, res) => {
       try {
         const id = req.params;
         const query = { _id: new ObjectId(id) };
@@ -175,7 +178,7 @@ async function run() {
     });
 
     // update Assignment By id in Update Route
-    app.patch("/details/:id", async (req, res) => {
+    app.patch("/details/:id",verifyToken, async (req, res) => {
       try {
         const id = req.params.id;
         const data = req.body;
@@ -201,7 +204,7 @@ async function run() {
     });
 
     // Delete Assignment By id which is pass by body in AssignmentCard Route
-    app.delete("/delete/:id", async (req, res) => {
+    app.delete("/delete/:id",verifyToken, async (req, res) => {
       try {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) };
@@ -216,7 +219,7 @@ async function run() {
     });
 
     // Posting SubmitAssignment By AddAssignment Route
-    app.post("/SubmitAssignment", async (req, res) => {
+    app.post("/SubmitAssignment",verifyToken, async (req, res) => {
       try {
         const SubmitAssignmentData = req.body;
         const result = await SubmitAddAssignment.insertOne(
@@ -229,7 +232,7 @@ async function run() {
     });
 
     // Get All SubmitAssignment Assignment  in AllAssignment Route
-    app.get("/SubmitAssignment", async (req, res) => {
+    app.get("/SubmitAssignment",verifyToken, async (req, res) => {
       try {
         const result = await SubmitAddAssignment.find({
           ObtainMarks: { $exists: false },
@@ -244,7 +247,7 @@ async function run() {
     });
 
     //  Get All SubmitAssignment Assignment By Query AllAssignment Route
-    app.get("/SubmitAssignmentQuery", async (req, res) => {
+    app.get("/SubmitAssignmentQuery",verifyToken, async (req, res) => {
       try {
         const email = req.query.email;
         const query = {
@@ -261,7 +264,7 @@ async function run() {
     });
 
     //  Find Submitting Assignment By id  at GiveMarks Route
-    app.get("/SubmitAssignment/:id", async (req, res) => {
+    app.get("/SubmitAssignment/:id",verifyToken, async (req, res) => {
       try {
         const id = req.params;
         const query = { _id: new ObjectId(id) };
@@ -276,7 +279,7 @@ async function run() {
     });
 
     // update Assignment By id in Update Route
-    app.patch("/SubmitAssignment/:id", async (req, res) => {
+    app.patch("/SubmitAssignment/:id",verifyToken, async (req, res) => {
       try {
         const id = req.params.id;
         const data = req.body;
