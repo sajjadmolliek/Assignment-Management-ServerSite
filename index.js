@@ -10,7 +10,11 @@ const port = process.env.PORT || 5006;
 // middleWare
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "https://online-study-explore.web.app",
+      "https://online-study-explore.firebaseapp.com",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );
@@ -74,7 +78,7 @@ async function run() {
           .cookie("Token", token, {
             httpOnly: true,
             secure: false,
-            // maxAge:age,
+            sameSite: "none",
           })
           .send({ Success: "Cookies Set Successfully" });
       } catch (error) {
@@ -119,19 +123,32 @@ async function run() {
       }
     });
 
+    // AddAssignmentCount is for counting product
+    app.get("/AddAssignmentCount", async (req, res) => {
+      try {
+        const count = await AddAssignment.estimatedDocumentCount();
+        res.send({ count });
+      } catch (err) {
+        console.log("AddAssignmentCount is for counting product API", err);
+      }
+    });
+
     //  All Posting Assignment Get By Query AllAssignment Route
     app.get("/AddAssignmentQuery", async (req, res) => {
       try {
         const data = req.query.level;
+        const page = parseInt(req.query.page);
+        const size = parseInt(req.query.size);
+        const sizeNeedToSkip = (page - 1) * size;
 
         if (data === "All") {
-          const result = await AddAssignment.find().toArray();
+          const result = await AddAssignment.find().skip(sizeNeedToSkip).limit(size).toArray();
           res.send(result);
         } else {
           const query = {
             level: data,
           };
-          const result = await AddAssignment.find(query).toArray();
+          const result = await AddAssignment.find(query).skip(sizeNeedToSkip).limit(size).toArray();
           res.send(result);
         }
       } catch (error) {
@@ -205,7 +222,6 @@ async function run() {
         const result = await SubmitAddAssignment.insertOne(
           SubmitAssignmentData
         );
-        console.log(result);
         res.send(result);
       } catch (error) {
         console.log("Posting SubmitAssignment By AddAssignment Route:", error);
@@ -215,7 +231,9 @@ async function run() {
     // Get All SubmitAssignment Assignment  in AllAssignment Route
     app.get("/SubmitAssignment", async (req, res) => {
       try {
-        const result = await SubmitAddAssignment.find().toArray();
+        const result = await SubmitAddAssignment.find({
+          ObtainMarks: { $exists: false },
+        }).toArray();
         res.send(result);
       } catch (error) {
         console.log(
@@ -248,7 +266,6 @@ async function run() {
         const id = req.params;
         const query = { _id: new ObjectId(id) };
         const result = await SubmitAddAssignment.findOne(query);
-        console.log(id, query, result);
         res.send(result);
       } catch (error) {
         console.log(
@@ -272,9 +289,12 @@ async function run() {
             Feedback: data.Feedback,
           },
         };
-        // console.log({ id }, query, options,data,updateDoc);
 
-        const result = await SubmitAddAssignment.updateOne(query, updateDoc, options);
+        const result = await SubmitAddAssignment.updateOne(
+          query,
+          updateDoc,
+          options
+        );
         res.send(result);
       } catch (error) {
         console.log("update Assignment By id in Update Route Route:", error);
