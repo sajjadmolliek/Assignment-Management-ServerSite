@@ -13,6 +13,7 @@ app.use(
     origin: [
       "https://online-study-explore.web.app",
       "https://online-study-explore.firebaseapp.com",
+      'http://localhost:5173'
     ],
     credentials: true,
   })
